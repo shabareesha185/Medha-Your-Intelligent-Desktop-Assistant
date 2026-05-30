@@ -1,27 +1,11 @@
 {
   "name": "medha",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs",
-    "test": "tests"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node apps/api/src/server.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "private": true,
   "type": "module",
-  "devDependencies": {
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.9.1",
-    "nodemon": "^3.1.14",
-    "ts-node": "^10.9.2",
-    "turbo": "^2.9.16",
-    "typescript": "^6.0.3"
+  "scripts": {
+    "dev": "nodemon apps/api/src/server.js",
+    "start": "node apps/api/src/server.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -29,5 +13,8 @@
     "express": "^5.2.1",
     "mongoose": "^9.6.3",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }
