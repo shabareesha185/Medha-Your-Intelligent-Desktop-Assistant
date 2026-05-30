@@ -1,12 +1,7 @@
+import { openApp } from "../../automation/open-app.js";
+
 export class OpenAppTool {
   async execute(params) {
-    const { app } = params;
-
-    console.log(`Opening ${app}`);
-
-    return {
-      success: true,
-      message: `Opening ${app}`,
-    };
+    return openApp(params.app);
   }
 }
