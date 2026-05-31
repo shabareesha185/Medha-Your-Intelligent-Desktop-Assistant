@@ -1,5 +1,4 @@
 import { openUrl } from "../../automation/open-url.js";
-
 import { GoogleSearchSchema } from "../../schemas/google-search.schema.js";
 
 export class GoogleSearchTool {
