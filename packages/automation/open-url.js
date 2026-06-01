@@ -14,7 +14,8 @@ export async function openUrl(url) {
     throw new Error("Unsupported platform");
   }
 
-  spawn("python", [script, url]);
+  const pythonCmd = platform === "win32" ? "python" : "python3";
+  spawn(pythonCmd, [script, url]);
 
   return {
     success: true,

@@ -14,7 +14,8 @@ export async function closeApp(app) {
     throw new Error("Unsupported platform");
   }
 
-  spawn("python", [script, app]);
+  const pythonCmd = platform === "win32" ? "python" : "python3";
+  spawn(pythonCmd, [script, app]);
 
   return {
     success: true,
