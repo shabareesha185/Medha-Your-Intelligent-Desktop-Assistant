@@ -15,7 +15,8 @@ export async function closeApp(app) {
   }
 
   const pythonCmd = platform === "win32" ? "python" : "python3";
-  spawn(pythonCmd, [script, app]);
+  const canonicalApp = app.trim().toLowerCase();
+  spawn(pythonCmd, [script, canonicalApp]);
 
   return {
     success: true,

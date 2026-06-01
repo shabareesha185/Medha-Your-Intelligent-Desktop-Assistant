@@ -1,111 +1,73 @@
 import sys
+import os
 import subprocess
 
-app_input = sys.argv[1]
+# Add the parent 'python' root directory to sys.path to allow relative automation imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
+from automation.common.apps import APPS
+
+if len(sys.argv) < 2:
+    print("Error: No app specified")
+    sys.exit(1)
+
+app_input = sys.argv[1].lower().strip()
+
+# Check for new-window request
 new_window = False
 if app_input.endswith("-new"):
     new_window = True
-    app = app_input[:-4]
+    app_key = app_input[:-4]
 else:
-    app = app_input
+    app_key = app_input
 
-if app in ["chrome", "Chrome"]:
-    args = ["cmd", "/c", "start", "chrome"]
-    if new_window:
-        args.append("--new-window")
-    subprocess.Popen(args, shell=True)
-elif app in ["spotify", "Spotify"]:
-    if len(sys.argv) > 2:
-        song_name = " ".join(sys.argv[2:])
-        import urllib.request
-        import urllib.parse
-        import re
-        import ssl
-        
-        query = f"site:open.spotify.com/track {song_name}"
-        url = "https://html.duckduckgo.com/html/?q=" + urllib.parse.quote(query)
-        req = urllib.request.Request(
-            url, 
-            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36'}
-        )
-        try:
-            context = ssl._create_unverified_context()
-            with urllib.request.urlopen(req, context=context) as response:
-                html = response.read().decode('utf-8')
-                matches = re.findall(r'open\.spotify\.com/track/([a-zA-Z0-9]+)', html)
-                if matches:
-                    track_uri = f"spotify:track:{matches[0]}"
-                    import os
-                    try:
-                        os.startfile(track_uri)
-                    except Exception:
-                        subprocess.Popen(["cmd", "/c", "start", track_uri], shell=True)
-                    print(f"Playing '{song_name}' on Spotify")
-                else:
-                    search_uri = f"spotify:search:{urllib.parse.quote(song_name)}"
-                    import os
-                    try:
-                        os.startfile(search_uri)
-                    except Exception:
-                        subprocess.Popen(["cmd", "/c", "start", search_uri], shell=True)
-                    print(f"Could not find exact track, opening search for '{song_name}'")
-        except Exception as e:
-            search_uri = f"spotify:search:{urllib.parse.quote(song_name)}"
-            import os
-            try:
-                os.startfile(search_uri)
-            except Exception:
-                subprocess.Popen(["cmd", "/c", "start", search_uri], shell=True)
-            print(f"Error occurred playing Spotify track: {e}")
-    else:
-        import os
-        # Try using URI protocol (highly robust for Windows Store & Desktop versions)
-        try:
-            os.startfile("spotify:")
-        except Exception:
-            # Fallback to standard AppData installation path
-            appdata = os.environ.get('APPDATA', '')
-            spotify_path = os.path.join(appdata, 'Spotify', 'Spotify.exe')
-            if os.path.exists(spotify_path):
-                subprocess.Popen([spotify_path])
-            else:
-                # Fallback to general command start
-                subprocess.Popen(["cmd", "/c", "start", "spotify"], shell=True)
-elif app in ["whatsapp", "WhatsApp"]:
-    import os
-    # Try using URI protocol (highly robust for Microsoft Store & Desktop versions)
+app_config = APPS.get(app_key, {}).get("windows")
+
+if not app_config:
+    # Fallback to general start command
+    subprocess.Popen(["cmd", "/c", "start", sys.argv[1]], shell=True)
+    sys.exit(0)
+
+# Handle launch by URI protocol
+if "uri" in app_config:
     try:
-        os.startfile("whatsapp:")
+        os.startfile(app_config["uri"])
     except Exception:
-        # Fallback to general command start
-        subprocess.Popen(["cmd", "/c", "start", "whatsapp"], shell=True)
-elif app in ["brave", "Brave", "Brave Browser"]:
-    import os
-    program_files = os.environ.get("ProgramFiles", "C:\\Program Files")
-    program_files_x86 = os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)")
-    local_appdata = os.environ.get("LOCALAPPDATA", "")
-    
-    paths = [
-        os.path.join(program_files, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"),
-        os.path.join(program_files_x86, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"),
-    ]
-    if local_appdata:
-        paths.append(os.path.join(local_appdata, "BraveSoftware", "Brave-Browser", "Application", "brave.exe"))
+        subprocess.Popen(["cmd", "/c", "start", app_config["uri"]], shell=True)
+    print(f"{app_key} launched via URI")
+    sys.exit(0)
+
+# Handle launch by file paths
+exec_name = app_config.get("exec")
+paths = app_config.get("paths", [])
+found_path = None
+
+for p in paths:
+    if "BraveSoftware" in p:
+        program_files = os.environ.get("ProgramFiles", "C:\\Program Files")
+        program_files_x86 = os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)")
+        local_appdata = os.environ.get("LOCALAPPDATA", "")
         
-    brave_path = None
-    for p in paths:
-        if os.path.exists(p):
-            brave_path = p
-            break
-            
-    if brave_path:
-        args = [brave_path]
-        if new_window:
-            args.append("--new-window")
-        subprocess.Popen(args)
-    else:
-        cmd_args = ["cmd", "/c", "start", "brave"]
-        if new_window:
-            cmd_args.append("--new-window")
-        subprocess.Popen(cmd_args, shell=True)
+        test_paths = [
+            os.path.join(program_files, p),
+            os.path.join(program_files_x86, p)
+        ]
+        if local_appdata:
+            test_paths.append(os.path.join(local_appdata, p))
+        for tp in test_paths:
+            if os.path.exists(tp):
+                found_path = tp
+                break
+
+if found_path:
+    args = [found_path]
+    if new_window and app_config.get("supports_new_window"):
+        args.append("--new-window")
+    subprocess.Popen(args)
+else:
+    cmd_args = ["cmd", "/c", "start", exec_name]
+    if new_window and app_config.get("supports_new_window"):
+        cmd_args.append("--new-window")
+    subprocess.Popen(cmd_args, shell=True)
+
+print(f"{app_key} launched")

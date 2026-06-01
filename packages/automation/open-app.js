@@ -15,7 +15,10 @@ export async function openApp(app) {
   }
 
   const pythonCmd = platform === "win32" ? "python" : "python3";
-  spawn(pythonCmd, [script, app]);
+  const parts = app.trim().split(/\s+/);
+  const canonicalApp = parts[0].toLowerCase();
+  const restOfArgs = parts.slice(1);
+  spawn(pythonCmd, [script, canonicalApp, ...restOfArgs]);
 
   return {
     success: true,

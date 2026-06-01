@@ -1,38 +1,24 @@
 import sys
+import os
 import subprocess
 
-APP_MAP = {
-    "chrome": "Google Chrome",
-    "spotify": "Spotify",
-    "Spotify": "Spotify",
-    "apple_music": "Music",
-    "appleMusic": "Music",
-    "applemusic": "Music",
-    "music": "Music",
-    "launch_appleMusic": "Music",
-    "luanch_appleMusic": "Music",
-    "whatsapp": "WhatsApp",
-    "WhatsApp": "WhatsApp",
-    "brave": "Brave Browser",
-    "Brave": "Brave Browser"
-}
+# Add the parent 'python' root directory to sys.path to allow relative automation imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-app_key = sys.argv[1]
-app = APP_MAP.get(app_key)
+from automation.common.apps import APPS
 
-if not app:
-    raise Exception("Unknown app")
+if len(sys.argv) < 2:
+    print("Error: No app specified")
+    sys.exit(1)
 
-if app_key in ["brave", "Brave", "chrome", "Google Chrome"]:
-    # Close only the front window using AppleScript to preserve other open windows
-    app_name = "Brave Browser" if "brave" in app_key.lower() else "Google Chrome"
-    subprocess.run([
-        "osascript", "-e",
-        f'tell application "{app_name}" to if (count of windows) > 0 then close front window'
-    ])
-    print(f"{app} window closed")
+app_key = sys.argv[1].lower().strip()
+app_config = APPS.get(app_key, {}).get("macos")
+
+if not app_config:
+    # Fallback to direct pkill on the argument
+    process_name = sys.argv[1]
 else:
-    subprocess.run(
-        ["pkill", "-f", app]
-    )
-    print(f"{app} closed")
+    process_name = app_config["process"]
+
+subprocess.run(["pkill", "-f", process_name])
+print(f"{process_name} closed")
