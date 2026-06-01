@@ -1,8 +1,9 @@
 import sys
-import webbrowser
+import subprocess
 
 url = sys.argv[1]
 
-webbrowser.open(url)
+# Use native macOS 'open' utility to reliably launch default browser with the URL
+subprocess.Popen(["open", url])
 
 print(f"Opened {url}")

@@ -14,7 +14,11 @@ export async function openApp(app) {
     throw new Error("Unsupported platform");
   }
 
-  spawn("python", [script, app]);
+  const pythonCmd = platform === "win32" ? "python" : "python3";
+  const parts = app.trim().split(/\s+/);
+  const canonicalApp = parts[0].toLowerCase();
+  const restOfArgs = parts.slice(1);
+  spawn(pythonCmd, [script, canonicalApp, ...restOfArgs]);
 
   return {
     success: true,

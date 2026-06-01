@@ -5,4 +5,5 @@ export const ALLOWED_ACTIONS = [
   "google_search",
   "youtube_search",
   "play_youtube",
+  "sleep_mode",
 ];
