@@ -7,5 +7,9 @@ export async function execute(action, params) {
     throw new Error(`Unknown action: ${action}`);
   }
 
+  if (tool.schema) {
+    tool.schema.parse(params);
+  }
+
   return tool.execute(params);
 }
