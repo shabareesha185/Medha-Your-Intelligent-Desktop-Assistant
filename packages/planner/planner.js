@@ -31,6 +31,15 @@ export function plan(text) {
     };
   }
 
+  if (input.includes("close chrome")) {
+    return {
+      action: "close_app",
+      params: {
+        app: "chrome",
+      },
+    };
+  }
+
   if (input.includes("open vscode") || input.includes("open vs code")) {
     return {
       action: "open_app",
