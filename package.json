@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon apps/api/src/server.js",
-    "start": "node apps/api/src/server.js"
+    "start": "node apps/api/src/server.js",
+    "voice": "node voice-mode.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
