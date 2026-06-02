@@ -2,7 +2,11 @@ export function plan(text) {
   const input = text.toLowerCase().trim();
 
   // Sleep Mode
-  if (input.includes("sleep") || input.includes("suspend") || input.includes("hibernate")) {
+  if (
+    input.includes("sleep") ||
+    input.includes("suspend") ||
+    input.includes("hibernate")
+  ) {
     return {
       action: "sleep_mode",
       params: {},
@@ -21,21 +25,22 @@ export function plan(text) {
     };
   }
 
+  // close Apps
+  if (input.includes("close chrome")) {
+    return {
+      action: "close_app",
+      params: {
+        app: "chrome",
+      },
+    };
+  }
+
   // Open Apps
   if (input.includes("open chrome")) {
     return {
       action: "open_app",
       params: {
         app: input.includes("-new") ? "chrome-new" : "chrome",
-      },
-    };
-  }
-
-  if (input.includes("close chrome")) {
-    return {
-      action: "close_app",
-      params: {
-        app: "chrome",
       },
     };
   }
@@ -58,7 +63,11 @@ export function plan(text) {
     };
   }
 
-  if (input.includes("open apple music") || input.includes("open music") || input.includes("open applemusic")) {
+  if (
+    input.includes("open apple music") ||
+    input.includes("open music") ||
+    input.includes("open applemusic")
+  ) {
     return {
       action: "open_app",
       params: {
@@ -140,17 +149,38 @@ export function plan(text) {
   }
 
   // Close Apps
-  if (input.startsWith("close ") || input.startsWith("exit ") || input.startsWith("quit ")) {
+  if (
+    input.startsWith("close ") ||
+    input.startsWith("exit ") ||
+    input.startsWith("quit ")
+  ) {
     const appToClose = input.replace(/^(close|exit|quit)\s+/, "").trim();
     const validApps = [
-      "chrome", "brave", "spotify", "apple_music", "music", "applemusic",
-      "whatsapp", "vscode", "vs code", "slack", "discord", "zoom", "safari", "finder", "terminal"
+      "chrome",
+      "brave",
+      "spotify",
+      "apple_music",
+      "music",
+      "applemusic",
+      "whatsapp",
+      "vscode",
+      "vs code",
+      "slack",
+      "discord",
+      "zoom",
+      "safari",
+      "finder",
+      "terminal",
     ];
     if (validApps.includes(appToClose)) {
       let canonicalApp = appToClose;
       if (appToClose === "vs code" || appToClose === "vscode") {
         canonicalApp = "vscode";
-      } else if (appToClose === "music" || appToClose === "applemusic" || appToClose === "apple_music") {
+      } else if (
+        appToClose === "music" ||
+        appToClose === "applemusic" ||
+        appToClose === "apple_music"
+      ) {
         canonicalApp = "apple_music";
       }
       return {

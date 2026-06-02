@@ -28,6 +28,10 @@ if not app_config:
     subprocess.Popen(["open", "-a", sys.argv[1]])
     sys.exit(0)
 
+# if not app_config:     #non whitelisted app should not support
+#     print("Unsupported app")
+#     sys.exit(1)
+
 app_name = app_config["name"]
 
 # Handle new window request via AppleScript if supported

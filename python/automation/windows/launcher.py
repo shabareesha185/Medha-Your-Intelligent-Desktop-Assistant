@@ -28,6 +28,10 @@ if not app_config:
     subprocess.Popen(["cmd", "/c", "start", sys.argv[1]], shell=True)
     sys.exit(0)
 
+# if not app_config:  #non whitelisted app should not support
+#     print("Unsupported app")
+#     sys.exit(1)
+
 # Handle launch by URI protocol
 if "uri" in app_config:
     try:
