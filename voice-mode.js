@@ -17,21 +17,24 @@ async function startVoiceMode() {
         .toLowerCase()
         .replace(/[^\w\s]/g, "");
 
-      //   console.log("\nRaw:", speech.text);
-      console.log("You: ", text);
+      console.log("\nYou:", speech.text);
 
       if (!text) {
-        console.log("No speech detected");
         continue;
       }
 
       if (text === "exit" || text === "stop voice mode") {
-        // console.log("EXIT DETECTED");
         await speak("Voice mode stopped");
         process.exit(0);
       }
 
-      const command = plan(speech.text);
+      if (!text.startsWith("medha")) {
+        console.log("Wake word not detected");
+        continue;
+      }
+
+      const commandText = text.replace(/^medha\s*/, "");
+      const command = plan(commandText);
       console.log("\nCommand:", command);
 
       await speak(getResponse(command.action, command.params));

@@ -1,11 +1,11 @@
 import sys
 import json
-import whisper
 import sounddevice as sd
 
 from scipy.io.wavfile import write
+from faster_whisper import WhisperModel
 
-DURATION = 5
+DURATION = 3
 SAMPLE_RATE = 16000
 
 print("Listening...", file=sys.stderr)
@@ -13,7 +13,8 @@ print("Listening...", file=sys.stderr)
 audio = sd.rec(
     int(DURATION * SAMPLE_RATE),
     samplerate=SAMPLE_RATE,
-    channels=1
+    channels=1,
+    dtype="int16"
 )
 
 sd.wait()
@@ -26,16 +27,24 @@ write(
 
 print("Transcribing...", file=sys.stderr)
 
-model = whisper.load_model("tiny")
-
-result = model.transcribe(
-    "recording.wav",
-    language="en",
-    fp16=False
+model = WhisperModel(
+    "base",
+    device="cpu",
+    compute_type="int8"
 )
+
+segments, info = model.transcribe(
+    "recording.wav",
+    language="en"
+)
+
+text = " ".join(
+    segment.text
+    for segment in segments
+).strip()
 
 print(
     json.dumps({
-        "text": result["text"].strip()
+        "text": text
     })
 )
