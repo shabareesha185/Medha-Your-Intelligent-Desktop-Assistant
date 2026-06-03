@@ -5,6 +5,8 @@ import sounddevice as sd
 from scipy.io.wavfile import write
 from faster_whisper import WhisperModel
 
+import time
+
 DURATION = 3
 SAMPLE_RATE = 16000
 
@@ -27,11 +29,20 @@ write(
 
 print("Transcribing...", file=sys.stderr)
 
+model_start = time.time()
+
 model = WhisperModel(
     "base",
     device="cpu",
     compute_type="int8"
 )
+
+print(
+    f"Model load: {time.time() - model_start:.2f}s",
+    file=sys.stderr
+)
+
+transcribe_start = time.time()
 
 segments, info = model.transcribe(
     "recording.wav",
@@ -42,6 +53,11 @@ text = " ".join(
     segment.text
     for segment in segments
 ).strip()
+
+print(
+    f"Transcribe: {time.time() - transcribe_start:.2f}s",
+    file=sys.stderr
+)
 
 print(
     json.dumps({

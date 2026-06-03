@@ -1,15 +1,6 @@
-from faster_whisper import WhisperModel
+# test_torch.py
 
-model = WhisperModel(
-    "base",
-    device="cpu",
-    compute_type="int8"
-)
+import torch
 
-segments, info = model.transcribe(
-    "recording.wav",
-    language="en"
-)
-
-for segment in segments:
-    print(segment.text)
+print(torch.__version__)
+print(torch.cuda.is_available())
