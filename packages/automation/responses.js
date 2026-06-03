@@ -1,13 +1,13 @@
 export function getResponse(action, params = {}) {
   switch (action) {
     case "open_app":
-      return `Opening ${params.app}`;
+      return `Sure. Opening ${params.app}`;
 
     case "close_app":
       return `Closing ${params.app}`;
 
     case "open_url":
-      return "Opening website";
+      return "Opening that website";
 
     case "google_search":
       return `Searching Google for ${params.query}`;

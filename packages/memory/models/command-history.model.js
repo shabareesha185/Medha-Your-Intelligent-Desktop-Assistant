@@ -22,6 +22,11 @@ const commandHistorySchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    commandText: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,
