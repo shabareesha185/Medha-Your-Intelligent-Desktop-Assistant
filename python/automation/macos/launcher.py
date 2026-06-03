@@ -34,8 +34,14 @@ if not app_config:
 
 app_name = app_config["name"]
 
-# Handle new window request via AppleScript if supported
-if new_window and app_config.get("supports_new_window"):
+# Handle new window or tab requests via AppleScript if supported
+if app_key in ["chrome-tab", "brave-tab"]:
+    target_app = "Google Chrome" if app_key == "chrome-tab" else "Brave Browser"
+    subprocess.Popen([
+        "osascript", "-e", f'tell application "{target_app}" to tell front window to make new tab',
+        "-e", f'tell application "{target_app}" to activate'
+    ])
+elif new_window and app_config.get("supports_new_window"):
     subprocess.Popen([
         "osascript", "-e", f'tell application "{app_name}" to make new window',
         "-e", f'tell application "{app_name}" to activate'

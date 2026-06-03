@@ -36,6 +36,34 @@ export function plan(text) {
   }
 
   // Open Apps
+  if (
+    input.includes("open chrome tab") ||
+    input.includes("new tab chrome") ||
+    input.includes("chrome new tab") ||
+    input.includes("chrome tab")
+  ) {
+    return {
+      action: "open_app",
+      params: {
+        app: "chrome-tab",
+      },
+    };
+  }
+
+  if (
+    input.includes("open brave tab") ||
+    input.includes("new tab brave") ||
+    input.includes("brave new tab") ||
+    input.includes("brave tab")
+  ) {
+    return {
+      action: "open_app",
+      params: {
+        app: "brave-tab",
+      },
+    };
+  }
+
   if (input.includes("open chrome")) {
     return {
       action: "open_app",
