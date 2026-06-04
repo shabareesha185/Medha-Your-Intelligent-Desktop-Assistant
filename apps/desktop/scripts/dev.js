@@ -23,6 +23,7 @@ async function startDev() {
   let electronProcess = spawn(npxCmd, ["electron", "."], {
     cwd: rootDir,
     stdio: "inherit",
+    shell: process.platform === "win32",
     env: {
       ...process.env,
       VITE_DEV_SERVER_URL: "http://localhost:5173",
