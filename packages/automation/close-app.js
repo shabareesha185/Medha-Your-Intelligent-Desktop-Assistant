@@ -20,7 +20,10 @@ export async function closeApp(app) {
 
   const pythonCmd = platform === "win32" ? "python" : "python3";
   const canonicalApp = app.trim().toLowerCase();
-  spawn(pythonCmd, [script, canonicalApp]);
+  const child = spawn(pythonCmd, [script, canonicalApp]);
+  child.on("error", (err) => {
+    console.error("Failed to spawn close-app script:", err);
+  });
 
   return {
     success: true,

@@ -19,7 +19,10 @@ export async function openUrl(url) {
   }
 
   const pythonCmd = platform === "win32" ? "python" : "python3";
-  spawn(pythonCmd, [script, url]);
+  const child = spawn(pythonCmd, [script, url]);
+  child.on("error", (err) => {
+    console.error("Failed to spawn open-url script:", err);
+  });
 
   return {
     success: true,

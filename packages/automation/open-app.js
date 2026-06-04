@@ -22,7 +22,10 @@ export async function openApp(app) {
   const parts = app.trim().split(/\s+/);
   const canonicalApp = parts[0].toLowerCase();
   const restOfArgs = parts.slice(1);
-  spawn(pythonCmd, [script, canonicalApp, ...restOfArgs]);
+  const child = spawn(pythonCmd, [script, canonicalApp, ...restOfArgs]);
+  child.on("error", (err) => {
+    console.error("Failed to spawn open-app script:", err);
+  });
 
   return {
     success: true,
