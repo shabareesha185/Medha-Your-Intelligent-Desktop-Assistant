@@ -19,7 +19,8 @@ async function startDev() {
   console.log("Vite server running at http://localhost:5173");
 
   // 2. Start Electron process pointing directly to main.js
-  let electronProcess = spawn("npx", ["electron", "."], {
+  const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
+  let electronProcess = spawn(npxCmd, ["electron", "."], {
     cwd: rootDir,
     stdio: "inherit",
     env: {
