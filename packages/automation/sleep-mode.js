@@ -6,10 +6,12 @@ export async function sleepMode() {
 
   if (platform === "darwin") {
     // macOS native sleep command (pmset sleepnow)
-    spawn("pmset", ["sleepnow"]);
+    const child = spawn("pmset", ["sleepnow"]);
+    child.on("error", (err) => console.error("Sleep command error:", err));
   } else if (platform === "win32") {
     // Windows native sleep command via powrprof DLL suspend state call
-    spawn("rundll32.exe", ["powrprof.dll,SetSuspendState", "0,1,0"]);
+    const child = spawn("rundll32.exe", ["powrprof.dll,SetSuspendState", "0,1,0"]);
+    child.on("error", (err) => console.error("Sleep command error:", err));
   } else {
     throw new Error("Unsupported platform");
   }

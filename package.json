@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "nodemon apps/api/src/server.js",
     "start": "node apps/api/src/server.js",
-    "voice": "node voice-mode.js"
+    "voice": "node voice-mode.js",
+    "desktop:install": "npm install --prefix apps/desktop",
+    "desktop:dev": "npm run --prefix apps/desktop electron:dev",
+    "desktop:prod": "npm run --prefix apps/desktop electron:prod"
   },
   "dependencies": {
     "cors": "^2.8.6",

@@ -15,6 +15,16 @@ APPS = {
             "supports_new_window": True
         }
     },
+    "chrome-tab": {
+        "macos": {
+            "name": "Google Chrome",
+            "process": "Google Chrome"
+        },
+        "windows": {
+            "exec": "chrome",
+            "process": "chrome.exe"
+        }
+    },
     "brave": {
         "macos": {
             "name": "Brave Browser",
@@ -28,6 +38,16 @@ APPS = {
                 "BraveSoftware\\Brave-Browser\\Application\\brave.exe"
             ],
             "supports_new_window": True
+        }
+    },
+    "brave-tab": {
+        "macos": {
+            "name": "Brave Browser",
+            "process": "Brave Browser"
+        },
+        "windows": {
+            "exec": "brave",
+            "process": "brave.exe"
         }
     },
     "spotify": {
