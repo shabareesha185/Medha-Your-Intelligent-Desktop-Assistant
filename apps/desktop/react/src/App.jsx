@@ -38,6 +38,10 @@ export default function App() {
   const [isFloat, setIsFloat] = useState(false);
   const [commandInput, setCommandInput] = useState("");
   const [themeColor, setThemeColor] = useState("cyan"); // cyan, green, purple, amber
+  const [aiProvider, setAiProvider] = useState({ name: "Local Cyber Core", type: "local", configured: true });
+  const [geminiKeyInput, setGeminiKeyInput] = useState("");
+  const [groqKeyInput, setGroqKeyInput] = useState("");
+  const [keySavedMessage, setKeySavedMessage] = useState("");
 
   const [liveFeed, setLiveFeed] = useState([
     { userSpeech: 'Open Safari', assistantReply: 'Opening Safari...', time: '10:21 AM' },
@@ -136,12 +140,19 @@ export default function App() {
       setStats(newStats);
     });
 
+    const removeAiStatus = window.electronAPI.receive("ai-status-update", (status) => {
+      if (status) setAiProvider(status);
+    });
+
+    window.electronAPI.send("get-ai-status");
+
     return () => {
       removeStatus();
       removeTrans();
       removeResp();
       removeFeed();
       removeStats();
+      removeAiStatus();
     };
   }, []);
 
@@ -427,9 +438,14 @@ export default function App() {
           WebkitAppRegion: "drag"
         }}
       >
-        <span style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "2px", color: theme.primary, textShadow: `0 0 6px ${theme.glow}` }}>
-          MEDHA_CORE_AGENT_PORTAL // SECURE_CHANNEL
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "2px", color: theme.primary, textShadow: `0 0 6px ${theme.glow}` }}>
+            MEDHA_CORE_AGENT_PORTAL // SECURE_CHANNEL
+          </span>
+          <span style={{ fontSize: "9px", fontFamily: "monospace", color: "#64748b", padding: "2px 6px", background: "rgba(255,255,255,0.03)", borderRadius: "4px", border: `1px solid ${theme.border}` }}>
+            BRAIN: <strong style={{ color: theme.primary }}>{aiProvider.name.toUpperCase()}</strong>
+          </span>
+        </div>
         <div style={{ display: "flex", gap: "12px", WebkitAppRegion: "no-drag" }}>
           <button onClick={toggleFloat} title="Float Mode" style={topActionBtnStyle}>
             <Minimize2 size={13} style={{ color: theme.primary }} />
@@ -834,6 +850,85 @@ export default function App() {
                   <ColorThemeOption name="Matrix Green" color="#10b981" active={themeColor === "green"} onClick={() => setThemeColor("green")} />
                   <ColorThemeOption name="Synth Purple" color="#a855f7" active={themeColor === "purple"} onClick={() => setThemeColor("purple")} />
                   <ColorThemeOption name="Amber Tech" color="#f59e0b" active={themeColor === "amber"} onClick={() => setThemeColor("amber")} />
+                </div>
+              </div>
+
+              {/* AI Neural Brain Configuration */}
+              <div style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${theme.border}`, borderRadius: "8px", padding: "14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <h3 style={{ fontSize: "12px", color: "#CBD5E1", fontWeight: 700 }}>AI NEURAL ENGINE (MULTI-MODEL BRAIN)</h3>
+                  <span style={{ fontSize: "10px", color: theme.primary, fontWeight: 700, padding: "2px 8px", background: "rgba(255,255,255,0.04)", borderRadius: "4px" }}>
+                    ACTIVE: {aiProvider.name.toUpperCase()}
+                  </span>
+                </div>
+                <div style={{ fontSize: "10px", color: "#94a3b8", lineHeight: "1.4", marginBottom: "12px" }}>
+                  Medha cascades between configured models. If an API rate limit hits, it automatically fails over to the next provider or the built-in local engine.
+                </div>
+
+                {keySavedMessage && (
+                  <div style={{ fontSize: "11px", color: "#22c55e", fontWeight: 700, marginBottom: "10px" }}>
+                    ✓ {keySavedMessage}
+                  </div>
+                )}
+
+                {/* Gemini API Key */}
+                <div style={{ marginBottom: "12px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "10px", color: "#cbd5e1", fontWeight: 600 }}>Google Gemini API Key (Free)</span>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{ fontSize: "9px", color: theme.primary, textDecoration: "none" }}>Get Free Key ↗</a>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <input
+                      type="password"
+                      placeholder="Paste Gemini API key..."
+                      value={geminiKeyInput}
+                      onChange={(e) => setGeminiKeyInput(e.target.value)}
+                      style={{ flex: 1, background: "rgba(0,0,0,0.5)", border: `1px solid ${theme.border}`, borderRadius: "4px", padding: "6px 10px", color: "#fff", fontSize: "11px", outline: "none" }}
+                    />
+                    <button
+                      onClick={() => {
+                        if (!geminiKeyInput.trim()) return;
+                        if (window.electronAPI) {
+                          window.electronAPI.send("save-ai-key", { provider: "gemini", key: geminiKeyInput });
+                          setKeySavedMessage("Gemini API key saved & connected!");
+                          setTimeout(() => setKeySavedMessage(""), 4000);
+                        }
+                      }}
+                      style={{ background: theme.primary, border: "none", borderRadius: "4px", padding: "0 12px", color: "#000", fontWeight: 700, fontSize: "10px", cursor: "pointer" }}
+                    >
+                      CONNECT
+                    </button>
+                  </div>
+                </div>
+
+                {/* Groq API Key */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "10px", color: "#cbd5e1", fontWeight: 600 }}>Groq Cloud API Key (Free Ultra-Fast Llama 3.3)</span>
+                    <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" style={{ fontSize: "9px", color: theme.primary, textDecoration: "none" }}>Get Free Key ↗</a>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <input
+                      type="password"
+                      placeholder="Paste Groq API key..."
+                      value={groqKeyInput}
+                      onChange={(e) => setGroqKeyInput(e.target.value)}
+                      style={{ flex: 1, background: "rgba(0,0,0,0.5)", border: `1px solid ${theme.border}`, borderRadius: "4px", padding: "6px 10px", color: "#fff", fontSize: "11px", outline: "none" }}
+                    />
+                    <button
+                      onClick={() => {
+                        if (!groqKeyInput.trim()) return;
+                        if (window.electronAPI) {
+                          window.electronAPI.send("save-ai-key", { provider: "groq", key: groqKeyInput });
+                          setKeySavedMessage("Groq API key saved & connected!");
+                          setTimeout(() => setKeySavedMessage(""), 4000);
+                        }
+                      }}
+                      style={{ background: theme.primary, border: "none", borderRadius: "4px", padding: "0 12px", color: "#000", fontWeight: 700, fontSize: "10px", cursor: "pointer" }}
+                    >
+                      CONNECT
+                    </button>
+                  </div>
                 </div>
               </div>
 

@@ -17,6 +17,27 @@ export class CircuitBreaker {
     this.lastSuccessfulProvider = null;
   }
 
+  setApiKey(providerName, key) {
+    if (providerName.toLowerCase().includes("gemini")) {
+      process.env.GEMINI_API_KEY = key;
+      const p = this.providers.find(x => x instanceof GeminiProvider);
+      if (p) p.apiKey = key;
+    } else if (providerName.toLowerCase().includes("groq")) {
+      process.env.GROQ_API_KEY = key;
+      const p = this.providers.find(x => x instanceof GroqProvider);
+      if (p) p.apiKey = key;
+    }
+  }
+
+  getActiveProviderInfo() {
+    for (const p of this.providers) {
+      if (p.isConfigured()) {
+        return { name: p.name, type: "cloud", configured: true };
+      }
+    }
+    return { name: "Local Cyber Core", type: "local", configured: true };
+  }
+
   async ask(prompt) {
     let lastError = null;
 

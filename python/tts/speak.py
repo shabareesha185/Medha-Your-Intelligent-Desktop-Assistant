@@ -1,28 +1,35 @@
 import sys
-import asyncio
-import edge_tts
-import tempfile
 import os
 
-TEXT = sys.argv[1]
+if len(sys.argv) < 2:
+    sys.exit(0)
 
-async def main():
+TEXT = sys.argv[1].strip()
 
-    temp_file = tempfile.NamedTemporaryFile(
-        delete=False,
-        suffix=".mp3"
-    )
-
-    await edge_tts.Communicate(
-        TEXT,
-        voice="en-US-AriaNeural"
-    ).save(temp_file.name)
-
+def speak_native(text):
     if os.name == "nt":
-        os.startfile(temp_file.name)
+        # Windows native PowerShell SAPI
+        sanitized = text.replace("'", "''").replace('"', '`"')
+        cmd = f'powershell -NoProfile -Command "Add-Type -AssemblyName System.Speech; $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer; $synth.Speak(\'{sanitized}\')"'
+        os.system(cmd)
     else:
-        os.system(
-            f"afplay {temp_file.name}"
-        )
+        # macOS native speech command
+        os.system(f'say "{text}"')
 
-asyncio.run(main())
+try:
+    import asyncio
+    import edge_tts
+    import tempfile
+
+    async def main():
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+        await edge_tts.Communicate(TEXT, voice="en-US-AriaNeural").save(temp_file.name)
+        if os.name == "nt":
+            os.startfile(temp_file.name)
+        else:
+            os.system(f"afplay {temp_file.name}")
+
+    asyncio.run(main())
+except Exception:
+    # Graceful fallback to zero-dependency OS speech
+    speak_native(TEXT)

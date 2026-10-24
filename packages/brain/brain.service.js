@@ -11,6 +11,14 @@ export class BrainService {
     this.circuitBreaker = new CircuitBreaker(config);
   }
 
+  getActiveProviderInfo() {
+    return this.circuitBreaker.getActiveProviderInfo();
+  }
+
+  setApiKey(providerName, key) {
+    this.circuitBreaker.setApiKey(providerName, key);
+  }
+
   /**
    * Process any user input string from terminal, UI, or voice microphone.
    * @param {string} input - Raw user utterance or typed text.

@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, screen } from "electron";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { transcribe } from "../../../../packages/automation/transcribe.js";
@@ -69,6 +70,10 @@ function createWindow() {
   // Redirect renderer console logs to main process stdout
   mainWindow.webContents.on("console-message", (event, level, message, line, sourceId) => {
     console.log(`[RENDERER] ${message} (at ${sourceId}:${line})`);
+  });
+
+  mainWindow.webContents.on("did-finish-load", () => {
+    mainWindow.webContents.send("ai-status-update", brain.getActiveProviderInfo());
   });
 
   mainWindow.on("closed", () => {
@@ -263,6 +268,36 @@ ipcMain.on("execute-command", async (_, text) => {
       mainWindow.webContents.send("voice-status", "idle");
       mainWindow.webContents.send("response-text", `Error: ${error.message}`);
     }
+  }
+});
+
+ipcMain.on("get-ai-status", () => {
+  if (mainWindow) {
+    mainWindow.webContents.send("ai-status-update", brain.getActiveProviderInfo());
+  }
+});
+
+ipcMain.on("save-ai-key", (_, { provider, key }) => {
+  brain.setApiKey(provider, key);
+  try {
+    const envPath = path.resolve(__dirname, "../../../../.env");
+    let content = "";
+    if (fs.existsSync(envPath)) {
+      content = fs.readFileSync(envPath, "utf-8");
+    }
+    const envVar = provider.toLowerCase().includes("gemini") ? "GEMINI_API_KEY" : "GROQ_API_KEY";
+    const regex = new RegExp(`^${envVar}=.*$`, "m");
+    if (regex.test(content)) {
+      content = content.replace(regex, `${envVar}=${key.trim()}`);
+    } else {
+      content += `\n${envVar}=${key.trim()}`;
+    }
+    fs.writeFileSync(envPath, content.trim() + "\n", "utf-8");
+  } catch (err) {
+    console.error("Failed to persist .env key:", err.message);
+  }
+  if (mainWindow) {
+    mainWindow.webContents.send("ai-status-update", brain.getActiveProviderInfo());
   }
 });
 

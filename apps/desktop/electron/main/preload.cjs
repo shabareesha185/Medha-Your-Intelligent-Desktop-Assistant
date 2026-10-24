@@ -11,7 +11,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
       "minimize-window",
       "close-window",
       "toggle-float-mode",
-      "window-drag"
+      "window-drag",
+      "save-ai-key",
+      "get-ai-status"
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
@@ -24,7 +26,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
       "response-text",
       "waveform-data",
       "live-feed-update",
-      "system-stats"
+      "system-stats",
+      "ai-status-update"
     ];
     if (validChannels.includes(channel)) {
       const subscription = (_event, ...args) => func(...args);
