@@ -1,13 +1,18 @@
 import { app, BrowserWindow, ipcMain, screen } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 import { transcribe } from "../../../../packages/automation/transcribe.js";
 import { speak } from "../../../../packages/automation/speak.js";
 import { plan } from "../../../../packages/planner/planner.js";
 import { execute } from "../../../../packages/executor/executor.js";
 import { getResponse } from "../../../../packages/automation/responses.js";
+import { brain } from "../../../../packages/brain/brain.service.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Load environment variables from Medha_AI root
+dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 
 let mainWindow = null;
 let isFloatMode = false;
@@ -115,35 +120,29 @@ async function runVoiceLoop() {
 
       console.log("Spoken:", text);
       mainWindow.webContents.send("transcription", text);
-
       mainWindow.webContents.send("voice-status", "thinking");
-      
-      let command;
-      try {
-        command = plan(text);
-      } catch (err) {
-        mainWindow.webContents.send("voice-status", "speaking");
-        mainWindow.webContents.send("response-text", "Sorry, I did not recognize that command.");
-        await speak("Sorry, I did not recognize that command.");
-        continue;
-      }
+      mainWindow.webContents.send("response-text", "Consulting cyber core...");
 
-      const verbalResponse = getResponse(command.action, command.params);
-      console.log("Responding:", verbalResponse);
+      const outcome = await brain.process(text);
+      console.log(`Responding via ${outcome.provider}:`, outcome.verbalResponse);
 
       mainWindow.webContents.send("voice-status", "speaking");
-      mainWindow.webContents.send("response-text", verbalResponse);
+      mainWindow.webContents.send("response-text", outcome.verbalResponse);
       
       mainWindow.webContents.send("live-feed-update", {
         userSpeech: speech.text,
-        assistantReply: verbalResponse,
+        assistantReply: outcome.verbalResponse,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
 
-      await speak(verbalResponse);
+      await speak(outcome.verbalResponse);
 
-      console.log("Executing Action:", command.action, command.params);
-      await execute(command.action, command.params);
+      if (outcome.type === "automation") {
+        console.log("Executing Action:", outcome.action, outcome.params);
+        await execute(outcome.action, outcome.params);
+      }
+
+      mainWindow.webContents.send("voice-status", "idle");
 
     } catch (error) {
       console.error("Error in Voice Loop:", error.message);
@@ -237,26 +236,27 @@ ipcMain.on("execute-command", async (_, text) => {
     mainWindow.webContents.send("voice-status", "thinking");
     mainWindow.webContents.send("response-text", "Analyzing cyber core...");
 
-    // 2. Parse instruction using planner.js
-    const command = plan(text);
-    const verbalResponse = getResponse(command.action, command.params);
+    // 2. Process via unified Multi-Model Brain (Automation + Conversational AI)
+    const outcome = await brain.process(text);
 
     // 3. Render and speak response
     mainWindow.webContents.send("voice-status", "speaking");
-    mainWindow.webContents.send("response-text", verbalResponse);
+    mainWindow.webContents.send("response-text", outcome.verbalResponse);
     mainWindow.webContents.send("live-feed-update", {
       userSpeech: text,
-      assistantReply: verbalResponse,
+      assistantReply: outcome.verbalResponse,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });
 
-    await speak(verbalResponse);
+    await speak(outcome.verbalResponse);
 
-    // 4. Run native automation script
-    await execute(command.action, command.params);
+    // 4. Run native automation script if automation type
+    if (outcome.type === "automation") {
+      await execute(outcome.action, outcome.params);
+      mainWindow.webContents.send("response-text", `${outcome.verbalResponse} (Completed)`);
+    }
 
     mainWindow.webContents.send("voice-status", "idle");
-    mainWindow.webContents.send("response-text", "Action completed");
   } catch (error) {
     console.error("Execute command error:", error.message);
     if (mainWindow) {

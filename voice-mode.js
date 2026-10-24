@@ -1,9 +1,8 @@
 import { transcribe } from "./packages/automation/transcribe.js";
 import { speak } from "./packages/automation/speak.js";
-import { plan } from "./packages/planner/planner.js";
 import { execute } from "./packages/executor/executor.js";
-import { getResponse } from "./packages/automation/responses.js";
 import { voiceState } from "./packages/voice/voice-state.js";
+import { brain } from "./packages/brain/brain.service.js";
 
 async function startVoiceMode() {
   voiceState.enabled = true;
@@ -50,28 +49,24 @@ async function startVoiceMode() {
 
       voiceState.status = "thinking";
 
-      const command = plan(commandText);
-
-      console.log("\nCommand:", command);
+      const outcome = await brain.process(commandText);
+      console.log(`\nBrain (${outcome.provider}):`, outcome.verbalResponse);
 
       voiceState.status = "speaking";
+      await speak(outcome.verbalResponse);
 
-      await speak(getResponse(command.action, command.params));
-
-      voiceState.status = "thinking";
-
-      const result = await execute(command.action, command.params);
-
-      console.log("\nResult:", result);
+      if (outcome.type === "automation") {
+        voiceState.status = "thinking";
+        const result = await execute(outcome.action, outcome.params);
+        console.log("\nResult:", result);
+      }
 
       voiceState.status = "idle";
     } catch (error) {
       console.error("\nError:", error.message);
 
       voiceState.status = "speaking";
-
-      await speak("Sorry, I didn't understand.");
-
+      await speak("Sorry, I encountered an internal error.");
       voiceState.status = "idle";
     }
   }
